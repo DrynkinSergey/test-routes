@@ -1,25 +1,34 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { Suspense, lazy, useEffect } from 'react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import routes from './data/routes.json'
+import Navbar from './Navbar'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const App = () => {
+	const navigate = useNavigate()
+	const location = useLocation()
+	useEffect(() => {
+		//find item inside our file, if exist it will be default
+		const tabIsIncludedInFile = routes.find(item => item.id === location.pathname.slice(1))
+		const defaultTab = routes.find(item => item.order === 0)
+		tabIsIncludedInFile || navigate(`/${defaultTab.id}`)
+	}, [])
+	useEffect(() => {
+		document.title = location.pathname
+	}, [location.pathname])
+
+	return (
+		<>
+			<Navbar routes={routes} />
+			<Suspense fallback={null}>
+				<Routes>
+					<Route path='/' element={<div>Welcome to test task Backendless</div>} />
+					{routes.map(({ id, path }) => (
+						<Route key={id} path={id} element={React.createElement(lazy(() => import(`./${path}`)))} />
+					))}
+				</Routes>
+			</Suspense>
+		</>
+	)
 }
 
-export default App;
+export default App
